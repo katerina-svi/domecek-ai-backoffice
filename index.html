@@ -392,6 +392,7 @@ function wake(){nav.classList.remove('idle'); clearTimeout(idleT); idleT=setTime
 
 const h=parseInt(location.hash.slice(1),10);
 if(h>0&&h<STEPS.length)cur=h;
+window.addEventListener('hashchange',()=>{const n=parseInt(location.hash.slice(1),10)||0; if(n!==cur)go(n,true);});
 fit(); place(cur); wake();
 </script>
 </body>
