@@ -308,7 +308,7 @@ function vals(i){
   const stairs=i>=6;
   v.stairsClip=stairs?'inset(0% 0% 0% 0%)':'inset(100% 0% 0% 0%)'; v.stairsOp=stairs?1:0;
   v.noteOp=i===6?1:0;
-  v.t1=st.s===1?1:0; v.t2=st.title===2?1:0; v.t3=st.title===3?1:0;
+  v.t1=st.title?0:1; v.t2=st.title===2?1:0; v.t3=st.title===3?1:0;
   v.deskTicket=st.ticket?1:0; v.pkg=st.pkg?1:0;
   v.pkgDelay=st.loop?Math.max(0,LOOP_S-0.15)+'s':'.6s';
   v.chk=st.checks?RED:BLUED;
