@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Digitální domeček – AI backoffice</title>
+<meta name="description" content="Digitální domeček: animace o tom, na čem stojí AI backoffice. Krok za krokem, ovládání šipkami.">
+<meta name="author" content="Kateřina Švidrnochová">
+<meta property="og:title" content="Digitální domeček – AI backoffice">
+<meta property="og:description" content="Animace o tom, na čem stojí AI backoffice. Krok za krokem, ovládání šipkami.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://katerina-svi.github.io/domecek-ai-backoffice/nahled.png">
+<meta name="theme-color" content="#FBF7EE">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='18' fill='%23FBF7EE'/%3E%3Cpolygon points='22,46 50,24 78,46' fill='%23FFCC00' stroke='%232D4173' stroke-width='4' stroke-linejoin='round'/%3E%3Crect x='28' y='46' width='44' height='32' fill='%23FFFFFF' stroke='%232D4173' stroke-width='4'/%3E%3Ccircle cx='60' cy='60' r='6' fill='%23E85252'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&display=swap">
+<style>
+html,body{margin:0;padding:0;height:100%;background:#FBF7EE;overflow:hidden}
+#stage{cursor:default;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+#progress{position:absolute;left:80px;bottom:64px;display:flex;gap:22px;align-items:center}
+#progress .scene{display:flex;gap:5px;align-items:center;padding:14px 0;cursor:pointer}
+#progress .num{font-size:18px;font-weight:600;color:#7A8699;margin-right:8px;transition:color .3s ease}
+#progress .scene.on .num{color:#2D4173}
+#progress i{display:block;width:22px;height:6px;border-radius:3px;background:#DCD9D0;transition:background-color .3s ease,width .3s ease}
+#progress i.done{background:#2D4173}
+#progress i.now{background:#E85252;width:34px}
+#nav{position:absolute;right:80px;bottom:56px;display:flex;gap:12px;align-items:center;transition:opacity .5s ease}
+#nav.idle{opacity:0}
+#credit{font-size:18px;color:#7A8699;text-decoration:none;margin-right:16px;letter-spacing:.02em}
+#credit:hover{color:#E85252}
+#nav button{width:52px;height:52px;border-radius:50%;border:3px solid #2D4173;background:#FFFFFF;padding:0;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background-color .2s ease,opacity .3s ease}
+#nav button:hover{background:#FFCC00}
+#nav button:focus-visible{outline:3px solid #E85252;outline-offset:3px}
+#nav button:disabled{opacity:.3;cursor:default;background:#FFFFFF}
+#nav svg{width:24px;height:24px;fill:none;stroke:#2D4173;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+</style>
+</head>
+<body>
+<div style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#FBF7EE;font-family:Rubik,'Helvetica Neue',Arial,sans-serif">
+<div id="stage" data-screen-label="Digitální domeček" style="position:relative;flex-shrink:0;width:1920px;height:1080px;background:#FBF7EE;overflow:hidden;transform:{{ stageTf }};transform-origin:center center">
+
+  <div style="position:absolute;left:80px;top:80px;width:1760px;height:80px;color:#2D4173;font-size:60px;font-weight:700;letter-spacing:-0.02em;line-height:1.1">
+    <div style="position:absolute;left:0;top:0;opacity:{{ t1 }};transition:opacity .6s ease">Digitální domeček</div>
+    <div style="position:absolute;left:0;top:0;opacity:{{ t2 }};transition:opacity .6s ease">Bez spodních pater nemá správce s&nbsp;čím pracovat</div>
+    <div style="position:absolute;left:0;top:0;opacity:{{ t3 }};transition:opacity .6s ease">Správce se dá vyměnit. Dům zůstává</div>
+  </div>
+
+  <div style="position:absolute;left:80px;top:749px;width:1760px;height:3px;background:#C9CFD9"></div>
+
+  <div style="position:absolute;left:676px;top:210px;width:548px;height:138px;opacity:{{ roofOp }};transform:{{ roofTf }};transition:opacity .7s ease,transform .8s cubic-bezier(.2,.6,.2,1)">
+    <svg width="548" height="138" viewBox="0 0 548 138" style="display:block;overflow:visible">
+      <polygon id="roof" points="4,135 274,4 544,135" style="fill:{{ roofFill }};stroke:#2D4173;stroke-width:3;stroke-linejoin:round;transition:fill .6s ease"></polygon>
+    </svg>
+  </div>
+
+  <div style="position:absolute;left:700px;top:345px;width:500px;height:135px;box-sizing:border-box;border:3px solid #2D4173;border-bottom:none;background:{{ f3Bg }};opacity:{{ f3Op }};clip-path:{{ f3Clip }};transition:clip-path .8s cubic-bezier(.2,.6,.2,1),opacity .6s ease,background-color .6s ease">
+    <svg width="494" height="132" viewBox="3 3 494 132" style="position:absolute;left:0;top:0;overflow:visible">
+      <rect x="190" y="92" width="180" height="8" rx="2" style="fill:#2D4173"></rect>
+      <line x1="202" y1="100" x2="202" y2="135" style="stroke:#2D4173;stroke-width:4"></line>
+      <line x1="358" y1="100" x2="358" y2="135" style="stroke:#2D4173;stroke-width:4"></line>
+      <g style="opacity:{{ deskTicket }};transition:opacity .25s ease">
+        <rect x="300" y="50" width="34" height="42" rx="3" style="fill:#FFFFFF;stroke:#2D4173;stroke-width:2.5"></rect>
+        <line x1="307" y1="62" x2="327" y2="62" style="stroke:#2D4173;stroke-width:2.5"></line>
+        <line x1="307" y1="71" x2="327" y2="71" style="stroke:#2D4173;stroke-width:2.5"></line>
+        <line x1="307" y1="80" x2="320" y2="80" style="stroke:#2D4173;stroke-width:2.5"></line>
+      </g>
+      <g style="opacity:{{ pkg }};transition:opacity .25s ease {{ pkgDelay }}">
+        <rect x="214" y="54" width="56" height="38" rx="3" style="fill:#2D4173"></rect>
+        <rect x="238" y="54" width="8" height="38" style="fill:#FFCC00"></rect>
+        <rect x="214" y="69" width="56" height="7" style="fill:#FFCC00"></rect>
+      </g>
+    </svg>
+  </div>
+
+  <div style="position:absolute;left:700px;top:480px;width:500px;height:135px;box-sizing:border-box;border:3px solid #2D4173;border-bottom:none;background:{{ f2Bg }};opacity:{{ f2Op }};clip-path:{{ f2Clip }};transition:clip-path .8s cubic-bezier(.2,.6,.2,1),opacity .6s ease,background-color .6s ease">
+    <svg width="494" height="132" viewBox="3 3 494 132" style="position:absolute;left:0;top:0;overflow:visible">
+      <rect x="60" y="20" width="260" height="100" rx="8" style="fill:#FFFFFF;stroke:#2D4173;stroke-width:3"></rect>
+      <rect x="80" y="31" width="14" height="14" rx="3" style="fill:{{ chk }};transition:fill .12s ease .25s"></rect>
+      <rect x="80" y="53" width="14" height="14" rx="3" style="fill:{{ chk }};transition:fill .12s ease .4s"></rect>
+      <rect x="80" y="75" width="14" height="14" rx="3" style="fill:{{ chk }};transition:fill .12s ease .55s"></rect>
+      <rect x="80" y="97" width="14" height="14" rx="3" style="fill:{{ chk }};transition:fill .12s ease .7s"></rect>
+      <line x1="108" y1="38" x2="290" y2="38" style="stroke:#2D4173;stroke-width:3;stroke-linecap:round"></line>
+      <line x1="108" y1="60" x2="262" y2="60" style="stroke:#2D4173;stroke-width:3;stroke-linecap:round"></line>
+      <line x1="108" y1="82" x2="296" y2="82" style="stroke:#2D4173;stroke-width:3;stroke-linecap:round"></line>
+      <line x1="108" y1="104" x2="240" y2="104" style="stroke:#2D4173;stroke-width:3;stroke-linecap:round"></line>
+    </svg>
+  </div>
+
+  <div style="position:absolute;left:700px;top:615px;width:500px;height:135px;box-sizing:border-box;border:3px solid #2D4173;border-bottom:none;background:{{ f1Bg }};opacity:{{ f1Op }};clip-path:{{ f1Clip }};transition:clip-path .8s cubic-bezier(.2,.6,.2,1),opacity .6s ease,background-color .6s ease">
+    <svg width="494" height="132" viewBox="3 3 494 132" style="position:absolute;left:0;top:0;overflow:visible">
+      <g style="fill:#FFFFFF;stroke:#2D4173;stroke-width:2.5;stroke-linejoin:round">
+        <polygon points="70,28 106,28 118,40 118,96 70,96"></polygon>
+        <polygon points="138,22 174,22 186,34 186,90 138,90"></polygon>
+        <polygon points="206,30 242,30 254,42 254,98 206,98"></polygon>
+        <polygon points="274,24 310,24 322,36 322,92 274,92"></polygon>
+      </g>
+      <g style="stroke:#2D4173;stroke-width:2.5;stroke-linecap:round">
+        <line x1="78" y1="52" x2="110" y2="52"></line><line x1="78" y1="64" x2="110" y2="64"></line><line x1="78" y1="76" x2="98" y2="76"></line>
+        <line x1="146" y1="46" x2="178" y2="46"></line><line x1="146" y1="58" x2="178" y2="58"></line><line x1="146" y1="70" x2="166" y2="70"></line>
+        <line x1="214" y1="54" x2="246" y2="54"></line><line x1="214" y1="66" x2="246" y2="66"></line><line x1="214" y1="78" x2="234" y2="78"></line>
+        <line x1="282" y1="48" x2="314" y2="48"></line><line x1="282" y1="60" x2="314" y2="60"></line><line x1="282" y1="72" x2="302" y2="72"></line>
+      </g>
+      <rect x="60" y="112" width="272" height="8" rx="2" style="fill:#2D4173"></rect>
+    </svg>
+  </div>
+
+  <div style="position:absolute;left:700px;top:750px;width:500px;height:135px;box-sizing:border-box;border:3px solid #2D4173;background:{{ cellarBg }};opacity:{{ cellarOp }};clip-path:{{ cellarClip }};transition:clip-path .8s cubic-bezier(.2,.6,.2,1),opacity .6s ease,background-color .6s ease">
+    <svg width="494" height="129" viewBox="3 3 494 129" style="position:absolute;left:0;top:0;overflow:visible">
+      <g style="fill:#FFFFFF;stroke:#2D4173;stroke-width:2.5;stroke-linejoin:round">
+        <rect x="66" y="26" width="52" height="36" rx="2"></rect>
+        <rect x="126" y="32" width="44" height="30" rx="2"></rect>
+        <rect x="178" y="24" width="56" height="38" rx="2"></rect>
+        <rect x="242" y="30" width="62" height="32" rx="2"></rect>
+        <rect x="66" y="89" width="60" height="34" rx="2"></rect>
+        <rect x="134" y="83" width="48" height="40" rx="2"></rect>
+        <rect x="190" y="93" width="52" height="30" rx="2"></rect>
+        <rect x="250" y="85" width="54" height="38" rx="2"></rect>
+      </g>
+      <g style="stroke:#2D4173;stroke-width:2.5">
+        <line x1="92" y1="26" x2="92" y2="36"></line><line x1="148" y1="32" x2="148" y2="42"></line><line x1="206" y1="24" x2="206" y2="34"></line><line x1="273" y1="30" x2="273" y2="40"></line>
+        <line x1="96" y1="89" x2="96" y2="99"></line><line x1="158" y1="83" x2="158" y2="93"></line><line x1="216" y1="93" x2="216" y2="103"></line><line x1="277" y1="85" x2="277" y2="95"></line>
+      </g>
+      <g style="stroke:#2D4173;stroke-width:4;stroke-linecap:round">
+        <line x1="50" y1="12" x2="50" y2="132"></line><line x1="320" y1="12" x2="320" y2="132"></line>
+        <line x1="50" y1="63" x2="320" y2="63"></line><line x1="50" y1="124" x2="320" y2="124"></line>
+      </g>
+    </svg>
+  </div>
+
+
+  <div style="position:absolute;left:1160px;top:380px;width:200px;height:510px;clip-path:{{ stairsClip }};transition:clip-path .8s cubic-bezier(.2,.6,.2,1)">
+    <svg width="200" height="510" viewBox="1160 380 200 510" style="display:block;overflow:visible">
+      <g style="fill:#FFFFFF;stroke:#2D4173;stroke-width:3">
+        <rect x="1168" y="398" width="32" height="82" rx="3"></rect>
+        <rect x="1168" y="533" width="32" height="82" rx="3"></rect>
+        <rect x="1168" y="668" width="32" height="82" rx="3"></rect>
+        <rect x="1168" y="803" width="32" height="82" rx="3"></rect>
+      </g>
+      <g style="fill:#2D4173">
+        <circle cx="1192" cy="442" r="3"></circle><circle cx="1192" cy="577" r="3"></circle><circle cx="1192" cy="712" r="3"></circle><circle cx="1192" cy="847" r="3"></circle>
+      </g>
+      <g style="fill:none;stroke:#2D4173;stroke-width:4;stroke-linecap:round;stroke-linejoin:round">
+        <line x1="1200" y1="480" x2="1342" y2="480"></line>
+        <line x1="1200" y1="615" x2="1342" y2="615"></line>
+        <line x1="1200" y1="750" x2="1342" y2="750"></line>
+        <line x1="1200" y1="885" x2="1342" y2="885"></line>
+        <line x1="1346" y1="440" x2="1346" y2="885"></line>
+      </g>
+      <g style="fill:none;stroke:#2D4173;stroke-width:3;stroke-linejoin:round">
+        <path d="M1260,615 v-22.50 h13.33 v-22.50 h13.33 v-22.50 h13.33 v-22.50 h13.33 v-22.50 h13.33 v-22.50 h13.33"></path><path d="M1260,750 v-22.50 h13.33 v-22.50 h13.33 v-22.50 h13.33 v-22.50 h13.33 v-22.50 h13.33 v-22.50 h13.33"></path><path d="M1260,885 v-22.50 h13.33 v-22.50 h13.33 v-22.50 h13.33 v-22.50 h13.33 v-22.50 h13.33 v-22.50 h13.33"></path>
+      </g>
+    </svg>
+  </div>
+
+  <div style="position:absolute;left:80px;top:250px;width:570px;height:100px;display:flex;flex-direction:column;justify-content:center;align-items:flex-end;text-align:right;opacity:{{ roofLab }};transition:opacity .6s ease">
+    <div style="font-size:18px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:#7A8699">Střecha</div>
+    <div style="font-size:46px;font-weight:700;letter-spacing:-0.02em;line-height:1.1;color:#2D4173">Strategie a&nbsp;kontrola</div>
+  </div>
+  <div style="position:absolute;left:80px;top:362px;width:570px;height:100px;display:flex;flex-direction:column;justify-content:center;align-items:flex-end;text-align:right;opacity:{{ f3Lab }};transition:opacity .6s ease">
+    <div style="font-size:18px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:#7A8699">3.&nbsp;patro</div>
+    <div style="font-size:46px;font-weight:700;letter-spacing:-0.02em;line-height:1.1;color:#2D4173">Instrukce a&nbsp;AI</div>
+  </div>
+  <div style="position:absolute;left:80px;top:497px;width:570px;height:100px;display:flex;flex-direction:column;justify-content:center;align-items:flex-end;text-align:right;opacity:{{ f2Lab }};transition:opacity .6s ease">
+    <div style="font-size:18px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:#7A8699">2.&nbsp;patro</div>
+    <div style="font-size:46px;font-weight:700;letter-spacing:-0.02em;line-height:1.1;color:#2D4173">Metodika</div>
+  </div>
+  <div style="position:absolute;left:80px;top:632px;width:570px;height:100px;display:flex;flex-direction:column;justify-content:center;align-items:flex-end;text-align:right;opacity:{{ f1Lab }};transition:opacity .6s ease">
+    <div style="font-size:18px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:#7A8699">1.&nbsp;patro</div>
+    <div style="font-size:46px;font-weight:700;letter-spacing:-0.02em;line-height:1.1;color:#2D4173">Knowledge</div>
+    <div style="font-size:20px;font-weight:400;color:#4A5668;margin-top:2px">znalosti</div>
+  </div>
+  <div style="position:absolute;left:80px;top:767px;width:570px;height:100px;display:flex;flex-direction:column;justify-content:center;align-items:flex-end;text-align:right;opacity:{{ cellarLab }};transition:opacity .6s ease">
+    <div style="font-size:18px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:#7A8699">Sklep</div>
+    <div style="font-size:46px;font-weight:700;letter-spacing:-0.02em;line-height:1.1;color:#2D4173">Data</div>
+  </div>
+
+  <div style="position:absolute;left:1410px;top:250px;width:430px;height:100px;display:flex;align-items:center;font-size:30px;line-height:1.25;color:#4A5668;text-wrap:pretty;opacity:{{ roofLab }};transition:opacity .6s ease">Kam mířím a&nbsp;co si hlídám?</div>
+  <div style="position:absolute;left:1410px;top:345px;width:430px;height:135px;display:flex;flex-direction:column;justify-content:center;gap:10px">
+    <div style="font-size:30px;line-height:1.25;color:#4A5668;opacity:{{ f3Lab }};transition:opacity .6s ease">Co teď potřebuju?</div>
+    <div style="display:flex;align-items:center;gap:12px;opacity:{{ aiOp }};transition:opacity .6s ease">
+      <div style="width:18px;height:18px;border-radius:4px;background:{{ aiColor }};transition:background-color .6s ease"></div>
+      <div style="font-size:26px;font-weight:600;color:#2D4173">AI je správce domu</div>
+    </div>
+  </div>
+  <div style="position:absolute;left:1410px;top:497px;width:430px;height:100px;display:flex;align-items:center;font-size:30px;line-height:1.25;color:#4A5668;text-wrap:pretty;opacity:{{ f2Lab }};transition:opacity .6s ease">Jak pracuju?</div>
+  <div style="position:absolute;left:1410px;top:632px;width:430px;height:100px;display:flex;align-items:center;font-size:30px;line-height:1.25;color:#4A5668;text-wrap:pretty;opacity:{{ f1Lab }};transition:opacity .6s ease">Kdo jsem a&nbsp;pro koho pracuju?</div>
+  <div style="position:absolute;left:1410px;top:767px;width:430px;height:100px;display:flex;align-items:center;font-size:30px;line-height:1.25;color:#4A5668;text-wrap:pretty;opacity:{{ cellarLab }};transition:opacity .6s ease">Kde co leží?</div>
+
+  <div style="position:absolute;left:1200px;top:916px;width:146px;text-align:center;font-size:30px;font-weight:700;color:#2D4173;opacity:{{ stairsOp }};transition:opacity .6s ease .3s">Proces</div>
+
+  <div style="position:absolute;left:700px;top:916px;width:500px;text-align:center;font-size:30px;font-weight:500;color:#2D4173;opacity:{{ noteOp }};transition:opacity .6s ease .3s">Staví se odspodu</div>
+
+  <div id="red" style="position:absolute;left:0;top:0;width:0;height:0;opacity:{{ redOp }};transition:opacity .4s ease">
+    <svg width="90" height="115" viewBox="-40 -110 90 115" style="position:absolute;left:-40px;top:-110px;overflow:visible">
+      <g style="fill:#E85252;stroke:#2D4173;stroke-width:3;stroke-linejoin:round">
+        <rect x="-15" y="-34" width="12" height="34" rx="5"></rect>
+        <rect x="3" y="-34" width="12" height="34" rx="5"></rect>
+        <rect x="-20" y="-70" width="40" height="44" rx="16"></rect>
+        <circle cx="0" cy="-87" r="14"></circle>
+      </g>
+      <g style="opacity:{{ handBox }};transition:opacity .2s ease {{ handBoxDelay }}">
+        <rect x="8" y="-56" width="36" height="28" rx="2" style="fill:#FFFFFF;stroke:#2D4173;stroke-width:2.5"></rect>
+        <line x1="26" y1="-56" x2="26" y2="-46" style="stroke:#2D4173;stroke-width:2.5"></line>
+      </g>
+      <g style="opacity:{{ handTicket }};transition:opacity .2s ease {{ handTicketDelay }}">
+        <rect x="14" y="-72" width="22" height="28" rx="2" style="fill:#FFFFFF;stroke:#2D4173;stroke-width:2.5"></rect>
+        <line x1="19" y1="-64" x2="31" y2="-64" style="stroke:#2D4173;stroke-width:2"></line>
+        <line x1="19" y1="-57" x2="31" y2="-57" style="stroke:#2D4173;stroke-width:2"></line>
+      </g>
+    </svg>
+  </div>
+
+  <div id="blue" style="position:absolute;left:0;top:0;width:0;height:0;opacity:{{ blueOp }};transition:opacity .4s ease">
+    <svg width="90" height="115" viewBox="-40 -110 90 115" style="position:absolute;left:-40px;top:-110px;overflow:visible">
+      <g style="fill:#62C4DD;stroke:#2D4173;stroke-width:3;stroke-linejoin:round">
+        <rect x="-15" y="-34" width="12" height="34" rx="5"></rect>
+        <rect x="3" y="-34" width="12" height="34" rx="5"></rect>
+        <rect x="-20" y="-70" width="40" height="44" rx="16"></rect>
+        <circle cx="0" cy="-87" r="14"></circle>
+      </g>
+    </svg>
+  </div>
+
+  <div id="progress" aria-hidden="true"></div>
+  <div id="nav">
+    <a id="credit" href="https://svidrnochova.cz" target="_blank" rel="noopener">svidrnochova.cz</a>
+    <button id="prev" type="button" aria-label="Předchozí krok"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+    <button id="next" type="button" aria-label="Další krok"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button>
+  </div>
+</div>
+</div>
+</div>
+<script>
+const YEL='#FFCC00', WHITE='#FFFFFF', RED='#E85252', BLUEL='#62C4DD', BLUED='#2D4173';
+const LY=[480,615,750,885]; const LV={f3:0,f2:1,f1:2,cellar:3};
+const SPOT={f3:[1120,480],f2:[1070,615],f1:[1065,750],cellar:[1070,885],walk3:[1240,480],off:[2010,750]};
+const WL=1265, WR=1335, DOOR=1200;
+const ALL=s=>({cellar:s,f1:s,f2:s,f3:s,roof:s});
+const only=a=>Object.assign(ALL('D'),{[a]:'A'});
+const STEPS=[
+ {s:1,k:0,fl:{}},
+ {s:1,k:1,fl:{cellar:'A'}},
+ {s:1,k:2,fl:{cellar:'D',f1:'A'}},
+ {s:1,k:3,fl:{cellar:'D',f1:'D',f2:'A'}},
+ {s:1,k:4,fl:{cellar:'D',f1:'D',f2:'D',f3:'A'},red:'f3',ticket:1},
+ {s:1,k:5,fl:only('roof'),red:'f3',ticket:1},
+ {s:1,k:6,fl:ALL('A'),red:'f3',ticket:1},
+ {s:2,k:0,fl:ALL('N'),red:'f3',ticket:1},
+ {s:2,k:1,fl:only('f3'),red:'walk3',carry:'t'},
+ {s:2,k:2,fl:only('cellar'),red:'cellar',carry:'b'},
+ {s:2,k:3,fl:only('f1'),red:'f1',carry:'b'},
+ {s:2,k:4,fl:only('f2'),red:'f2',carry:'b',checks:1},
+ {s:2,k:5,fl:Object.assign(only('f3'),{roof:'N'}),red:'f3',pkg:1,checks:1,flash:1},
+ {s:2,k:6,fl:ALL('N'),red:'f3',pkg:1,checks:1,title:2},
+ {s:3,k:0,fl:ALL('N'),red:'f3',ticket:1},
+ {s:3,k:1,fl:ALL('N'),red:'off',ticket:1},
+ {s:3,k:2,fl:ALL('N'),blue:'f3',ticket:1},
+ {s:3,k:3,fl:ALL('N'),blue:'f3',pkg:1,loop:1},
+ {s:3,k:4,fl:ALL('N'),blue:'f3',pkg:1,title:3},
+];
+const SCENE_START={1:0,2:7,3:14}; const FINAL=6; const MAXK={1:6,2:6,3:4};
+function down(a,b){const p=[];for(let L=a;L<b;L++){p.push([WR,LY[L]],[WL,LY[L+1]]);}return p;}
+function up(a,b){const p=[];for(let L=a;L>b;L--){p.push([WL,LY[L]],[WR,LY[L-1]]);}return p;}
+function route(a,b){const la=LV[a],lb=LV[b];return [SPOT[a],[DOOR,LY[la]]].concat(lb>la?down(la,lb):up(la,lb),[[DOOR,LY[lb]],SPOT[b]]);}
+const EXIT=[SPOT.f3,[DOOR,480]].concat(down(0,2),[SPOT.off]);
+const LOOP=route('f3','cellar').concat(route('cellar','f1'),route('f1','f2'),route('f2','f3'));
+const PATHS={red:{8:[SPOT.f3,[DOOR,480],SPOT.walk3],9:[SPOT.walk3].concat(down(0,3),[[DOOR,885],SPOT.cellar]),10:route('cellar','f1'),11:route('f1','f2'),12:route('f2','f3'),15:EXIT},blue:{16:EXIT.slice().reverse(),17:LOOP}};
+function flight(yl,yu){let d='M1260,'+yl;const n=6,dy=(yl-yu)/n,dx=80/n;for(let j=0;j<n;j++){d+=' v'+(-dy).toFixed(2)+' h'+dx.toFixed(2);}return d;}
+function posOf(fig,i){const st=STEPS[i];if(fig==='red'){if(st.red)return SPOT[st.red];return i<4?SPOT.f3:SPOT.off;}return st.blue?SPOT[st.blue]:SPOT.off;}
+const tf=p=>'translate('+p[0]+'px,'+p[1]+'px)';
+
+
+const LOOP_S=3, DIM=0.3;
+const $=id=>document.getElementById(id);
+const figs={red:$('red'),blue:$('blue')}, roof=$('roof'), nav=$('nav'), progress=$('progress');
+let cur=0, scale=1;
+
+// vazby {{ hodnota }} ze šablony: každá vlastnost stylu nebo atribut zvlášť
+const binds=[];
+document.querySelectorAll('#stage, #stage *').forEach(el=>{
+  [...el.attributes].forEach(at=>{
+    if(!at.value.includes('{{'))return;
+    if(at.name==='style'){
+      const keep=[];
+      at.value.split(';').forEach(d=>{
+        if(!d.includes('{{')){keep.push(d);return;}
+        const c=d.indexOf(':');
+        binds.push({el,prop:d.slice(0,c).trim(),tpl:d.slice(c+1).trim()});
+      });
+      el.setAttribute('style',keep.join(';'));
+    }else binds.push({el,attr:at.name,tpl:at.value});
+  });
+});
+const fill=(tpl,v)=>tpl.replace(/\{\{\s*(\w+)\s*\}\}/g,(_,k)=>v[k]);
+
+function vals(i){
+  const st=STEPS[i], v={};
+  ['cellar','f1','f2','f3'].forEach(f=>{
+    const s=st.fl[f]||'H';
+    v[f+'Clip']=s==='H'?(f==='cellar'?'inset(0% 0% 100% 0%)':'inset(100% 0% 0% 0%)'):'inset(0% 0% 0% 0%)';
+    v[f+'Op']=s==='D'?DIM:1;
+    v[f+'Bg']=s==='A'?YEL:WHITE;
+    v[f+'Lab']=s==='H'?0:s==='D'?DIM:1;
+  });
+  const r=st.fl.roof||'H';
+  v.roofOp=r==='H'?0:r==='D'?DIM:1; v.roofTf=r==='H'?'translateY(-48px)':'translateY(0px)'; v.roofFill=r==='A'?YEL:WHITE; v.roofLab=v.roofOp;
+  const stairs=i>=6;
+  v.stairsClip=stairs?'inset(0% 0% 0% 0%)':'inset(100% 0% 0% 0%)'; v.stairsOp=stairs?1:0;
+  v.noteOp=i===6?1:0;
+  v.t1=st.s===1?1:0; v.t2=st.title===2?1:0; v.t3=st.title===3?1:0;
+  v.deskTicket=st.ticket?1:0; v.pkg=st.pkg?1:0;
+  v.pkgDelay=st.loop?Math.max(0,LOOP_S-0.15)+'s':'.6s';
+  v.chk=st.checks?RED:BLUED;
+  v.handTicket=st.carry?1:0; v.handTicketDelay=st.carry?'0s':'.6s';
+  v.handBox=st.carry==='b'?1:0; v.handBoxDelay=st.carry==='b'?'.6s':'0s';
+  v.redOp=(i>=4&&i<=15)?1:0; v.blueOp=i>=16?1:0;
+  v.aiOp=i>=4?1:0; v.aiColor=i>=16?BLUEL:RED;
+  v.stageTf='scale('+scale+')';
+  return v;
+}
+function render(){
+  const v=vals(cur);
+  binds.forEach(b=>{const x=fill(b.tpl,v); if(b.prop)b.el.style.setProperty(b.prop,x); else b.el.setAttribute(b.attr,x);});
+  progress.querySelectorAll('.scene').forEach(sc=>sc.classList.toggle('on',+sc.dataset.s===STEPS[cur].s));
+  progress.querySelectorAll('i').forEach(el=>{const n=+el.dataset.i; el.className=n===cur?'now':n<cur?'done':'';});
+  $('prev').disabled=cur===0; $('next').disabled=cur===STEPS.length-1;
+}
+function place(i){
+  Object.keys(figs).forEach(f=>{const el=figs[f]; el.getAnimations().forEach(x=>x.cancel()); el.style.transform=tf(posOf(f,i));});
+}
+function animPath(el,pts,dur){
+  const cum=[0];for(let j=1;j<pts.length;j++){cum.push(cum[j-1]+Math.hypot(pts[j][0]-pts[j-1][0],pts[j][1]-pts[j-1][1]));}
+  const tot=cum[cum.length-1]; if(!tot)return;
+  el.animate(pts.map((p,j)=>({transform:tf(p),offset:cum[j]/tot})),{duration:dur,easing:'cubic-bezier(.4,0,.4,1)'});
+}
+function go(n,instant){
+  if(n<0||n>=STEPS.length)return;
+  const p=cur; if(n===p)return;
+  cur=n;
+  history.replaceState(null,'',n?'#'+n:location.pathname+location.search);
+  render();
+  if(instant||Math.abs(n-p)!==1){place(n);return;}
+  const fwd=n>p, key=fwd?n:p;
+  Object.keys(figs).forEach(fig=>{
+    const el=figs[fig];
+    let pts=PATHS[fig][key];
+    const a=posOf(fig,p), b=posOf(fig,n);
+    if(pts){pts=fwd?pts:pts.slice().reverse();}
+    else if(a[0]!==b[0]||a[1]!==b[1]){pts=[a,b];}
+    el.getAnimations().forEach(x=>x.cancel());
+    el.style.transform=tf(b);
+    if(!pts)return;
+    animPath(el,pts,(fig==='blue'&&key===17)?LOOP_S*1000:800);
+  });
+  if(fwd&&STEPS[n].flash){
+    roof.animate([{fill:WHITE},{fill:YEL,offset:.35},{fill:YEL,offset:.6},{fill:WHITE}],{duration:500,delay:300});
+  }
+}
+
+// průběh: tři záběry, dílek za každý krok
+[1,2,3].forEach(s=>{
+  const sc=document.createElement('div'); sc.className='scene'; sc.dataset.s=s;
+  sc.innerHTML='<span class="num">'+s+'</span>';
+  STEPS.forEach((st,i)=>{if(st.s!==s)return; const el=document.createElement('i'); el.dataset.i=i; sc.appendChild(el);});
+  sc.addEventListener('click',e=>{e.stopPropagation(); go(SCENE_START[s]);});
+  progress.appendChild(sc);
+});
+
+function fit(){scale=Math.min(window.innerWidth/1920,window.innerHeight/1080); render();}
+window.addEventListener('resize',fit);
+window.addEventListener('keydown',e=>{
+  if(e.metaKey||e.ctrlKey||e.altKey)return;
+  const k=e.key;
+  if(k==='ArrowRight'||k==='ArrowDown'||k===' '||k==='PageDown'||k==='Enter'){e.preventDefault();go(cur+1);}
+  else if(k==='ArrowLeft'||k==='ArrowUp'||k==='PageUp'||k==='Backspace'){e.preventDefault();go(cur-1);}
+  else if(k==='Home'){e.preventDefault();go(0);}
+  else if(k==='End'){e.preventDefault();go(STEPS.length-1);}
+  else if(k==='1'||k==='2'||k==='3'){go(SCENE_START[k]);}
+  else if(k==='4'){go(FINAL);}
+  else if(k==='f'||k==='F'){if(document.fullscreenElement)document.exitFullscreen();else document.documentElement.requestFullscreen&&document.documentElement.requestFullscreen();}
+});
+$('prev').addEventListener('click',e=>{e.stopPropagation();e.currentTarget.blur();go(cur-1);});
+$('next').addEventListener('click',e=>{e.stopPropagation();e.currentTarget.blur();go(cur+1);});
+$('credit').addEventListener('click',e=>e.stopPropagation());
+// dotyk a klik: pravé dvě třetiny dál, levá třetina zpět
+document.addEventListener('click',e=>{go(cur+(e.clientX<window.innerWidth/3?-1:1));});
+// při promítání ovládání po chvíli klidu zmizí
+let idleT;
+function wake(){nav.classList.remove('idle'); clearTimeout(idleT); idleT=setTimeout(()=>nav.classList.add('idle'),3000);}
+['mousemove','touchstart','keydown'].forEach(ev=>window.addEventListener(ev,wake,{passive:true}));
+
+const h=parseInt(location.hash.slice(1),10);
+if(h>0&&h<STEPS.length)cur=h;
+fit(); place(cur); wake();
+</script>
+</body>
+</html>
